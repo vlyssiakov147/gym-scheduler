@@ -63,9 +63,10 @@
     .full-label { width: 100%; margin-top: 6px; text-align: center; font-size: 11px; color: #d1543a; font-weight: 600; padding: 4px 0; }
     .past-label { width: 100%; margin-top: 6px; text-align: center; font-size: 11px; color: var(--gray-text); padding: 4px 0; }
     .limit-label { width: 100%; margin-top: 6px; text-align: center; font-size: 11px; color: var(--gray-text); padding: 4px 0; }
+    .loading-label { width: 100%; margin-top: 6px; text-align: center; font-size: 11px; color: var(--gray-text); padding: 4px 0; }
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(9,58,97,0.5); z-index: 100; align-items: center; justify-content: center; }
     .modal-overlay.open { display: flex; }
-    .modal { background: var(--white); border-radius: 16px; padding: 1.75rem; width: 380px; max-width: 92vw; }
+    .modal { background: var(--white); border-radius: 16px; padding: 1.75rem; width: 360px; max-width: 92vw; }
     .modal h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
     .modal-sub { font-size: 13px; color: var(--gray-text); margin-bottom: 1.25rem; line-height: 1.5; }
     .modal label { font-size: 13px; font-weight: 500; color: var(--blue); display: block; margin-bottom: 5px; }
@@ -75,8 +76,6 @@
     .btn-primary { flex: 1; background: var(--blue); color: var(--white); border: none; border-radius: 8px; padding: 10px; font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
     .btn-primary:hover { background: var(--blue-light); }
     .btn-secondary { flex: 1; background: var(--white); color: var(--gray-text); border: 1px solid var(--gray-mid); border-radius: 8px; padding: 10px; font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; }
-    .email-note { font-size: 11px; color: var(--gray-text); margin-top: -10px; margin-bottom: 1rem; display: flex; align-items: center; gap: 5px; }
-    .email-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
     .admin-panel { background: var(--white); border-radius: 14px; border: 2px solid var(--gold); padding: 1.5rem; margin-bottom: 1.5rem; display: none; }
     .admin-panel.show { display: block; }
     .admin-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
@@ -93,12 +92,11 @@
     .dt-status { font-size: 10px; margin-top: 2px; }
     .admin-section-title { font-size: 13px; font-weight: 600; color: var(--blue); margin-bottom: 8px; }
     .booking-list { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
-    .booking-item { display: flex; align-items: center; justify-content: space-between; background: var(--gray-light); border-radius: 8px; padding: 8px 12px; font-size: 13px; gap: 8px; }
-    .booking-item-left { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .booking-item { display: flex; align-items: center; justify-content: space-between; background: var(--gray-light); border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+    .booking-item-left { display: flex; flex-direction: column; gap: 2px; }
     .booking-item-name { font-weight: 600; color: var(--text); }
     .booking-item-detail { font-size: 11px; color: var(--gray-text); }
-    .booking-item-email { font-size: 11px; color: var(--blue); }
-    .remove-booking-btn { font-size: 11px; color: #d1543a; background: none; border: 1px solid #d1543a; border-radius: 5px; padding: 3px 8px; cursor: pointer; font-family: 'Barlow', sans-serif; flex-shrink: 0; }
+    .remove-booking-btn { font-size: 11px; color: #d1543a; background: none; border: 1px solid #d1543a; border-radius: 5px; padding: 3px 8px; cursor: pointer; font-family: 'Barlow', sans-serif; }
     .no-bookings-msg { font-size: 13px; color: #bbb; text-align: center; padding: 1rem 0; }
     .admin-close-btn { background: var(--gray-light); border: 1px solid var(--gray-mid); border-radius: 8px; padding: 8px 16px; font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--gray-text); cursor: pointer; margin-top: 1rem; }
     .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--gray-text); margin-top: 1rem; }
@@ -106,7 +104,7 @@
     .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--blue); color: var(--white); padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 200; white-space: nowrap; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (max-width: 640px) { .days-grid { grid-template-columns: repeat(2, 1fr); } .admin-days { grid-template-columns: repeat(3, 1fr); } }
   </style>
@@ -122,7 +120,7 @@
       <button class="admin-btn" onclick="openAdminLogin()">Admin</button>
       <div class="user-pill" onclick="handleUserPill()">
         <div class="user-dot"></div>
-        <span id="user-label">Sign in</span>
+        <span id="user-label">Enter your name</span>
       </div>
     </div>
   </header>
@@ -157,19 +155,13 @@
   </div>
 </div>
 
-<!-- Sign In Modal -->
+<!-- Name Modal -->
 <div class="modal-overlay" id="name-modal">
   <div class="modal">
     <h2>Welcome</h2>
-    <p class="modal-sub">Enter your name and work email. Your email is used for booking confirmations and calendar invites.</p>
+    <p class="modal-sub">Enter your name to get started. This is how you'll appear on the schedule.</p>
     <label>Your Name</label>
     <input type="text" id="name-input" placeholder="e.g. Victor" />
-    <label>Work Email</label>
-    <input type="email" id="email-input" placeholder="vsmith@company.com" />
-    <div class="email-note">
-      <div class="email-dot"></div>
-      Confirmations and calendar invites will be sent here
-    </div>
     <div class="modal-btns">
       <button class="btn-primary" onclick="submitName()">Let's go</button>
     </div>
@@ -214,10 +206,12 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+  // ── Firebase config ──────────────────────────────────────────────
   const firebaseConfig = {
     apiKey: "AIzaSyC-Ol7UXu7N1hyTpIw2gvWBmmGnyWUBjI0",
     authDomain: "gym-scheduler-3b3f9.firebaseapp.com",
@@ -231,19 +225,21 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  // ── Constants ────────────────────────────────────────────────────
   const SLOTS = ['5:00 PM','5:30 PM','6:00 PM','6:30 PM'];
   const CAPACITY = 5;
   const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
   const ADMIN_PASSWORD = 'gym';
   const MAX_PER_WEEK = 1;
 
+  // ── State ────────────────────────────────────────────────────────
   let currentUser = sessionStorage.getItem('gymUser') || null;
-  let currentEmail = sessionStorage.getItem('gymEmail') || null;
   let isAdmin = false;
   let weekOffset = 0;
   let pendingSlot = null;
   let unsubscribe = null;
 
+  // ── Date helpers ─────────────────────────────────────────────────
   function getMonday(offset) {
     const now = new Date();
     const day = now.getDay();
@@ -279,17 +275,38 @@
     slotTime.setHours(h24, mins, 0, 0);
     return slotTime < now;
   }
-  function weekId(offset) { return localDateStr(getMonday(offset)); }
 
+  // ── Firestore helpers ────────────────────────────────────────────
+  function weekId(offset) {
+    const monday = getMonday(offset);
+    return localDateStr(monday);
+  }
+
+  async function getWeekData(offset) {
+    const wid = weekId(offset);
+    const ref = doc(db, 'weeks', wid);
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data() : { bookings: {}, disabledDays: {} };
+  }
+
+  async function saveWeekData(offset, data) {
+    const wid = weekId(offset);
+    const ref = doc(db, 'weeks', wid);
+    await setDoc(ref, data, { merge: true });
+  }
+
+  // ── Live listener ─────────────────────────────────────────────────
   function subscribeToWeek(offset) {
     if (unsubscribe) unsubscribe();
-    const ref = doc(db, 'weeks', weekId(offset));
+    const wid = weekId(offset);
+    const ref = doc(db, 'weeks', wid);
     unsubscribe = onSnapshot(ref, (snap) => {
       const data = snap.exists() ? snap.data() : { bookings: {}, disabledDays: {} };
       renderWithData(data);
     });
   }
 
+  // ── Week booking count ───────────────────────────────────────────
   function getUserWeekBookings(bookings) {
     if (!currentUser) return 0;
     let count = 0;
@@ -299,6 +316,7 @@
     return count;
   }
 
+  // ── Render ───────────────────────────────────────────────────────
   function renderWithData(data) {
     const bookings = data.bookings || {};
     const disabledDays = data.disabledDays || {};
@@ -396,6 +414,7 @@
     if (isAdmin) renderAdminPanel(bookings, disabledDays);
   }
 
+  // ── Admin panel ──────────────────────────────────────────────────
   function renderAdminPanel(bookings, disabledDays) {
     const monday = getMonday(weekOffset);
     const daysDiv = document.getElementById('admin-days');
@@ -408,9 +427,10 @@
       toggle.className = 'day-toggle '+(isDisabled?'disabled':'enabled');
       toggle.innerHTML = `<div class="dt-name">${DAYS[i]}</div><div class="dt-status">${isDisabled?'Closed':'Open'}</div>`;
       toggle.onclick = async () => {
-        const ref = doc(db, 'weeks', weekId(weekOffset));
+        const wid = weekId(weekOffset);
+        const ref = doc(db, 'weeks', wid);
         const snap = await getDoc(ref);
-        const current = snap.exists() ? (snap.data().disabledDays||{}) : {};
+        const current = snap.exists() ? (snap.data().disabledDays || {}) : {};
         current[dateStr] = !isDisabled;
         await setDoc(ref, { disabledDays: current }, { merge: true });
       };
@@ -434,7 +454,6 @@
           item.innerHTML = `<div class="booking-item-left">
             <div class="booking-item-name">${p.name}</div>
             <div class="booking-item-detail">${DAYS[i]} ${formatDate(date)} · ${time} · ${p.activity}</div>
-            <div class="booking-item-email">${p.email||'No email provided'}</div>
           </div>
           <button class="remove-booking-btn" onclick="window.adminRemove('${safeKey}','${safeName}')">Remove</button>`;
           listDiv.appendChild(item);
@@ -444,37 +463,31 @@
     if (!hasAny) listDiv.innerHTML = '<div class="no-bookings-msg">No bookings this week</div>';
   }
 
+  // ── Global functions (called from HTML onclick) ──────────────────
   window.changeWeek = (dir) => { weekOffset += dir; subscribeToWeek(weekOffset); };
   window.closeModal = (id) => { document.getElementById(id).classList.remove('open'); };
 
   window.handleUserPill = () => {
     if (currentUser) {
-      if (confirm('Sign out of '+currentUser+'?')) {
-        currentUser = null; currentEmail = null;
+      if (confirm('Change name? You will need to re-enter it.')) {
+        currentUser = null;
         sessionStorage.removeItem('gymUser');
-        sessionStorage.removeItem('gymEmail');
-        document.getElementById('user-label').textContent = 'Sign in';
+        document.getElementById('user-label').textContent = 'Enter your name';
         document.getElementById('name-input').value = '';
-        document.getElementById('email-input').value = '';
         document.getElementById('name-modal').classList.add('open');
         subscribeToWeek(weekOffset);
       }
     } else {
-      document.getElementById('name-input').value = currentUser || '';
-      document.getElementById('email-input').value = currentEmail || '';
+      document.getElementById('name-input').value = '';
       document.getElementById('name-modal').classList.add('open');
     }
   };
 
   window.submitName = () => {
     const name = document.getElementById('name-input').value.trim();
-    const email = document.getElementById('email-input').value.trim();
     if (!name) { showToast('Please enter your name'); return; }
-    if (!email.includes('@')) { showToast('Please enter a valid work email'); return; }
     currentUser = name;
-    currentEmail = email;
     sessionStorage.setItem('gymUser', name);
-    sessionStorage.setItem('gymEmail', email);
     document.getElementById('user-label').textContent = name;
     window.closeModal('name-modal');
     showToast('Welcome, '+name+'!');
@@ -496,12 +509,13 @@
     btn.innerHTML = '<span class="spinner"></span>Booking...';
     btn.disabled = true;
     try {
-      const ref = doc(db, 'weeks', weekId(weekOffset));
+      const wid = weekId(weekOffset);
+      const ref = doc(db, 'weeks', wid);
       const snap = await getDoc(ref);
       const data = snap.exists() ? snap.data() : { bookings: {}, disabledDays: {} };
       const bookings = data.bookings || {};
       if (!bookings[pendingSlot]) bookings[pendingSlot] = [];
-      bookings[pendingSlot].push({ name: currentUser, email: currentEmail, activity: act });
+      bookings[pendingSlot].push({ name: currentUser, activity: act });
       await setDoc(ref, { bookings }, { merge: true });
       window.closeModal('signup-modal');
       showToast('Booked! See you at the gym, '+currentUser+'.');
@@ -515,7 +529,8 @@
   window.dropSlot = async (key) => {
     if (!confirm('Remove your booking from this slot?')) return;
     try {
-      const ref = doc(db, 'weeks', weekId(weekOffset));
+      const wid = weekId(weekOffset);
+      const ref = doc(db, 'weeks', wid);
       const snap = await getDoc(ref);
       if (!snap.exists()) return;
       const data = snap.data();
@@ -554,7 +569,8 @@
   window.adminRemove = async (key, name) => {
     if (!confirm('Remove '+name+' from this slot?')) return;
     try {
-      const ref = doc(db, 'weeks', weekId(weekOffset));
+      const wid = weekId(weekOffset);
+      const ref = doc(db, 'weeks', wid);
       const snap = await getDoc(ref);
       if (!snap.exists()) return;
       const data = snap.data();
@@ -576,6 +592,7 @@
     setTimeout(() => t.classList.remove('show'), 3500);
   }
 
+  // ── Init ─────────────────────────────────────────────────────────
   if (currentUser) {
     document.getElementById('user-label').textContent = currentUser;
   } else {
