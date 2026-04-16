@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gym Scheduler</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #093A61; --blue-light: #1a5a8f; --blue-pale: #e8f1f8;
+      --gold: #C89843; --gold-light: #e8c07a; --gold-pale: #fdf6e8;
+      --white: #ffffff; --gray-light: #f4f5f7; --gray-mid: #e2e5ea;
+      --gray-text: #6b7280; --text: #0f1923;
+    }
+    body { font-family: 'Barlow', sans-serif; background: var(--gray-light); color: var(--text); }
+    .app { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+    header { background: var(--blue); border-radius: 14px; padding: 1.25rem 1.75rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .logo-area h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; color: var(--white); letter-spacing: 0.5px; }
+    .logo-area p { font-size: 13px; color: var(--gold-light); margin-top: 2px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .user-pill { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 6px 14px; font-size: 13px; color: var(--white); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .user-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+    .admin-btn { background: rgba(200,152,67,0.2); border: 1px solid rgba(200,152,67,0.4); border-radius: 999px; padding: 6px 14px; font-size: 13px; color: var(--gold-light); cursor: pointer; font-family: 'Barlow', sans-serif; }
+    .admin-btn:hover { background: rgba(200,152,67,0.3); }
+    .week-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .week-label { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 600; color: var(--blue); }
+    .nav-btns { display: flex; gap: 8px; }
+    .nav-btn { background: var(--white); border: 1px solid var(--gray-mid); border-radius: 8px; padding: 6px 14px; font-size: 13px; font-family: 'Barlow', sans-serif; font-weight: 500; color: var(--blue); cursor: pointer; }
+    .nav-btn:hover { background: var(--blue-pale); }
+    .booking-banner { background: var(--gold-pale); border: 1px solid var(--gold-light); border-radius: 10px; padding: 10px 16px; font-size: 13px; color: #7a5a1a; margin-bottom: 1rem; display: none; }
+    .booking-banner.show { display: block; }
+    .days-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+    .day-col { background: var(--white); border-radius: 12px; border: 1px solid var(--gray-mid); overflow: hidden; }
+    .day-col.disabled-day { opacity: 0.45; pointer-events: none; }
+    .day-header { background: var(--blue); padding: 10px 12px; text-align: center; }
+    .day-name { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; color: var(--gold-light); letter-spacing: 1px; text-transform: uppercase; }
+    .day-name.today { color: var(--gold); }
+    .day-date { font-size: 20px; font-weight: 600; color: var(--white); line-height: 1.2; }
+    .closed-badge { font-size: 10px; background: rgba(255,255,255,0.15); color: var(--white); border-radius: 4px; padding: 2px 6px; margin-top: 3px; display: inline-block; letter-spacing: 0.5px; }
+    .day-slots { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .slot { border: 1px solid var(--gray-mid); border-radius: 8px; padding: 8px 10px; transition: border-color 0.15s, background 0.15s; }
+    .slot.has-me { border-color: var(--gold); background: var(--gold-pale); }
+    .slot.full { background: #f9fafb; }
+    .slot.past { background: #f9fafb; opacity: 0.6; }
+    .slot-time { font-size: 11px; font-weight: 600; color: var(--blue); letter-spacing: 0.3px; margin-bottom: 4px; }
+    .slot-capacity { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+    .cap-bar { flex: 1; height: 3px; background: var(--gray-mid); border-radius: 99px; overflow: hidden; }
+    .cap-fill { height: 100%; background: var(--gold); border-radius: 99px; }
+    .cap-fill.full-cap { background: #d1543a; }
+    .cap-text { font-size: 10px; color: var(--gray-text); white-space: nowrap; }
+    .slot-people { display: flex; flex-direction: column; gap: 2px; }
+    .person-tag { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text); }
+    .person-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+    .person-dot.me { background: var(--gold); }
+    .activity-badge { font-size: 10px; background: var(--blue-pale); color: var(--blue); border-radius: 4px; padding: 1px 5px; font-weight: 500; }
+    .activity-badge.me { background: var(--gold-pale); color: #7a5a1a; }
+    .empty-msg { font-size: 11px; color: #bbb; text-align: center; padding: 8px 0; }
+    .sign-up-btn { width: 100%; margin-top: 6px; background: var(--blue); color: var(--white); border: none; border-radius: 6px; padding: 6px 0; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; }
+    .sign-up-btn:hover { background: var(--blue-light); }
+    .drop-btn { width: 100%; margin-top: 6px; background: transparent; color: #d1543a; border: 1px solid #d1543a; border-radius: 6px; padding: 6px 0; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; }
+    .drop-btn:hover { background: #fff0ed; }
+    .full-label { width: 100%; margin-top: 6px; text-align: center; font-size: 11px; color: #d1543a; font-weight: 600; padding: 4px 0; }
+    .past-label { width: 100%; margin-top: 6px; text-align: center; font-size: 11px; color: var(--gray-text); padding: 4px 0; }
+    .limit-label { width: 100%; margin-top: 6px; text-align: center; font-size: 11px; color: var(--gray-text); padding: 4px 0; }
+    .loading-label { width: 100%; margin-top: 6px; text-align: center; font-size: 11px; color: var(--gray-text); padding: 4px 0; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(9,58,97,0.5); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--white); border-radius: 16px; padding: 1.75rem; width: 360px; max-width: 92vw; }
+    .modal h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+    .modal-sub { font-size: 13px; color: var(--gray-text); margin-bottom: 1.25rem; line-height: 1.5; }
+    .modal label { font-size: 13px; font-weight: 500; color: var(--blue); display: block; margin-bottom: 5px; }
+    .modal input, .modal select { width: 100%; border: 1px solid var(--gray-mid); border-radius: 8px; padding: 9px 12px; font-family: 'Barlow', sans-serif; font-size: 14px; color: var(--text); background: var(--white); margin-bottom: 1rem; outline: none; }
+    .modal input:focus, .modal select:focus { border-color: var(--blue); }
+    .modal-btns { display: flex; gap: 8px; }
+    .btn-primary { flex: 1; background: var(--blue); color: var(--white); border: none; border-radius: 8px; padding: 10px; font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-primary:hover { background: var(--blue-light); }
+    .btn-secondary { flex: 1; background: var(--white); color: var(--gray-text); border: 1px solid var(--gray-mid); border-radius: 8px; padding: 10px; font-family: 'Barlow', sans-serif; font-size: 14px; cursor: pointer; }
+    .admin-panel { background: var(--white); border-radius: 14px; border: 2px solid var(--gold); padding: 1.5rem; margin-bottom: 1.5rem; display: none; }
+    .admin-panel.show { display: block; }
+    .admin-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+    .admin-subtitle { font-size: 13px; color: var(--gray-text); margin-bottom: 1rem; }
+    .admin-days { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 1.5rem; }
+    .day-toggle { border: 1px solid var(--gray-mid); border-radius: 8px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.15s; }
+    .day-toggle.enabled { background: var(--blue); border-color: var(--blue); }
+    .day-toggle.enabled .dt-name { color: var(--gold-light); }
+    .day-toggle.enabled .dt-status { color: rgba(255,255,255,0.7); }
+    .day-toggle.disabled { background: #f9fafb; }
+    .day-toggle.disabled .dt-name { color: var(--gray-text); }
+    .day-toggle.disabled .dt-status { color: #bbb; }
+    .dt-name { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
+    .dt-status { font-size: 10px; margin-top: 2px; }
+    .admin-section-title { font-size: 13px; font-weight: 600; color: var(--blue); margin-bottom: 8px; }
+    .booking-list { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+    .booking-item { display: flex; align-items: center; justify-content: space-between; background: var(--gray-light); border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+    .booking-item-left { display: flex; flex-direction: column; gap: 2px; }
+    .booking-item-name { font-weight: 600; color: var(--text); }
+    .booking-item-detail { font-size: 11px; color: var(--gray-text); }
+    .remove-booking-btn { font-size: 11px; color: #d1543a; background: none; border: 1px solid #d1543a; border-radius: 5px; padding: 3px 8px; cursor: pointer; font-family: 'Barlow', sans-serif; }
+    .no-bookings-msg { font-size: 13px; color: #bbb; text-align: center; padding: 1rem 0; }
+    .admin-close-btn { background: var(--gray-light); border: 1px solid var(--gray-mid); border-radius: 8px; padding: 8px 16px; font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--gray-text); cursor: pointer; margin-top: 1rem; }
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--gray-text); margin-top: 1rem; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--blue); color: var(--white); padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 200; white-space: nowrap; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 640px) { .days-grid { grid-template-columns: repeat(2, 1fr); } .admin-days { grid-template-columns: repeat(3, 1fr); } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo-area">
+      <h1>GYM SCHEDULER</h1>
+      <p>Book your training slot</p>
+    </div>
+    <div class="header-right">
+      <button class="admin-btn" onclick="openAdminLogin()">Admin</button>
+      <div class="user-pill" onclick="handleUserPill()">
+        <div class="user-dot"></div>
+        <span id="user-label">Enter your name</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-panel" id="admin-panel">
+    <div class="admin-title">Admin Panel</div>
+    <div class="admin-subtitle">Toggle available days and manage bookings for the current week.</div>
+    <div class="admin-section-title">Available Days</div>
+    <div class="admin-days" id="admin-days"></div>
+    <div class="admin-section-title">Current Bookings</div>
+    <div class="booking-list" id="admin-booking-list"></div>
+    <button class="admin-close-btn" onclick="closeAdmin()">Close Admin Panel</button>
+  </div>
+
+  <div class="booking-banner" id="booking-banner"></div>
+
+  <div class="week-nav">
+    <span class="week-label" id="week-label"></span>
+    <div class="nav-btns">
+      <button class="nav-btn" onclick="changeWeek(-1)">&#8592; Prev</button>
+      <button class="nav-btn" onclick="changeWeek(1)">Next &#8594;</button>
+    </div>
+  </div>
+
+  <div class="days-grid" id="days-grid"></div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div> Your booking</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Others booked</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#d1543a"></div> Full</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ccc"></div> Past / Closed</div>
+  </div>
+</div>
+
+<!-- Name Modal -->
+<div class="modal-overlay" id="name-modal">
+  <div class="modal">
+    <h2>Welcome</h2>
+    <p class="modal-sub">Enter your name to get started. This is how you'll appear on the schedule.</p>
+    <label>Your Name</label>
+    <input type="text" id="name-input" placeholder="e.g. Victor" />
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="submitName()">Let's go</button>
+    </div>
+  </div>
+</div>
+
+<!-- Book Slot Modal -->
+<div class="modal-overlay" id="signup-modal">
+  <div class="modal">
+    <h2>Book Slot</h2>
+    <p class="modal-sub" id="signup-sub"></p>
+    <label>Your Activity</label>
+    <select id="activity-select">
+      <option value="">-- Select activity --</option>
+      <option>Weight Lifting</option>
+      <option>Boxing</option>
+      <option>Cardio</option>
+      <option>Core Training</option>
+      <option>Leg Training</option>
+      <option>Yoga / Stretching</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('signup-modal')">Cancel</button>
+      <button class="btn-primary" id="confirm-btn" onclick="confirmSignup()">Confirm Booking</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Login Modal -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal">
+    <h2>Admin Access</h2>
+    <p class="modal-sub">Enter the admin password to continue.</p>
+    <label>Password</label>
+    <input type="password" id="admin-password-input" placeholder="••••••" />
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('admin-modal')">Cancel</button>
+      <button class="btn-primary" onclick="submitAdminPassword()">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ── Firebase config ──────────────────────────────────────────────
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-Ol7UXu7N1hyTpIw2gvWBmmGnyWUBjI0",
+    authDomain: "gym-scheduler-3b3f9.firebaseapp.com",
+    projectId: "gym-scheduler-3b3f9",
+    storageBucket: "gym-scheduler-3b3f9.firebasestorage.app",
+    messagingSenderId: "550260441356",
+    appId: "1:550260441356:web:2329160e4089362abe4929",
+    measurementId: "G-JJR1G8B14W"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ── Constants ────────────────────────────────────────────────────
+  const SLOTS = ['5:00 PM','5:30 PM','6:00 PM','6:30 PM'];
+  const CAPACITY = 5;
+  const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
+  const ADMIN_PASSWORD = 'gym';
+  const MAX_PER_WEEK = 1;
+
+  // ── State ────────────────────────────────────────────────────────
+  let currentUser = sessionStorage.getItem('gymUser') || null;
+  let isAdmin = false;
+  let weekOffset = 0;
+  let pendingSlot = null;
+  let unsubscribe = null;
+
+  // ── Date helpers ─────────────────────────────────────────────────
+  function getMonday(offset) {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1) + offset * 7;
+    const d = new Date(now);
+    d.setDate(diff); d.setHours(0,0,0,0);
+    return d;
+  }
+  function formatDate(d) { return d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }); }
+  function localDateStr(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y+'-'+m+'-'+day;
+  }
+  function slotKey(dateStr, time) { return dateStr+'|'+time.replace(/[: ]/g,'-'); }
+  function isToday(d) {
+    const t = new Date();
+    return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate();
+  }
+  function isPastDay(d) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const check = new Date(d); check.setHours(0,0,0,0);
+    return check < today;
+  }
+  function isPastSlot(d, time) {
+    const now = new Date();
+    const h12 = parseInt(time.split(':')[0]);
+    const mins = parseInt(time.split(':')[1]);
+    const isPM = time.includes('PM');
+    const h24 = isPM && h12!==12 ? h12+12 : (!isPM && h12===12 ? 0 : h12);
+    const slotTime = new Date(d);
+    slotTime.setHours(h24, mins, 0, 0);
+    return slotTime < now;
+  }
+
+  // ── Firestore helpers ────────────────────────────────────────────
+  function weekId(offset) {
+    const monday = getMonday(offset);
+    return localDateStr(monday);
+  }
+
+  async function getWeekData(offset) {
+    const wid = weekId(offset);
+    const ref = doc(db, 'weeks', wid);
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data() : { bookings: {}, disabledDays: {} };
+  }
+
+  async function saveWeekData(offset, data) {
+    const wid = weekId(offset);
+    const ref = doc(db, 'weeks', wid);
+    await setDoc(ref, data, { merge: true });
+  }
+
+  // ── Live listener ─────────────────────────────────────────────────
+  function subscribeToWeek(offset) {
+    if (unsubscribe) unsubscribe();
+    const wid = weekId(offset);
+    const ref = doc(db, 'weeks', wid);
+    unsubscribe = onSnapshot(ref, (snap) => {
+      const data = snap.exists() ? snap.data() : { bookings: {}, disabledDays: {} };
+      renderWithData(data);
+    });
+  }
+
+  // ── Week booking count ───────────────────────────────────────────
+  function getUserWeekBookings(bookings) {
+    if (!currentUser) return 0;
+    let count = 0;
+    Object.values(bookings || {}).forEach(people => {
+      if (Array.isArray(people) && people.find(p => p.name.toLowerCase() === currentUser.toLowerCase())) count++;
+    });
+    return count;
+  }
+
+  // ── Render ───────────────────────────────────────────────────────
+  function renderWithData(data) {
+    const bookings = data.bookings || {};
+    const disabledDays = data.disabledDays || {};
+    const monday = getMonday(weekOffset);
+    const friday = new Date(monday); friday.setDate(monday.getDate()+4);
+    document.getElementById('week-label').textContent = 'Week of '+formatDate(monday)+' – '+formatDate(friday);
+
+    const weekBookings = getUserWeekBookings(bookings);
+    const banner = document.getElementById('booking-banner');
+    if (currentUser) {
+      banner.textContent = weekBookings >= MAX_PER_WEEK
+        ? 'You have used your 1 booking for this week. Drop your current slot to book a different one.'
+        : 'Bookings used this week: '+weekBookings+'/'+MAX_PER_WEEK+'.';
+      banner.classList.add('show');
+    } else {
+      banner.classList.remove('show');
+    }
+
+    const grid = document.getElementById('days-grid');
+    grid.innerHTML = '';
+
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(monday); date.setDate(monday.getDate()+i);
+      const dateStr = localDateStr(date);
+      const dayPast = isPastDay(date);
+      const isDayDisabled = disabledDays[dateStr] === true;
+
+      const col = document.createElement('div');
+      col.className = 'day-col'+(isDayDisabled||dayPast?' disabled-day':'');
+      col.innerHTML = `<div class="day-header">
+        <div class="day-name${isToday(date)?' today':''}">${DAYS[i]}</div>
+        <div class="day-date">${date.getDate()}</div>
+        ${isDayDisabled?'<div class="closed-badge">CLOSED</div>':''}
+        ${dayPast?'<div class="closed-badge">PAST</div>':''}
+      </div>`;
+
+      const slotsDiv = document.createElement('div');
+      slotsDiv.className = 'day-slots';
+
+      SLOTS.forEach(time => {
+        const key = slotKey(dateStr, time);
+        const people = bookings[key] || [];
+        const myEntry = currentUser ? people.find(p => p.name.toLowerCase()===currentUser.toLowerCase()) : null;
+        const isFull = people.length >= CAPACITY;
+        const slotPast = isPastSlot(date, time);
+        const capPct = Math.round((people.length/CAPACITY)*100);
+        const atLimit = weekBookings >= MAX_PER_WEEK;
+
+        const slot = document.createElement('div');
+        slot.className = 'slot'+(myEntry?' has-me':slotPast?' past':isFull?' full':'');
+
+        let peopleHTML = people.length===0
+          ? '<div class="empty-msg">No bookings yet</div>'
+          : people.map(p => {
+              const isMe = currentUser && p.name.toLowerCase()===currentUser.toLowerCase();
+              return `<div class="person-tag">
+                <div class="person-dot${isMe?' me':''}"></div>
+                <span style="font-weight:${isMe?'600':'400'}">${p.name}</span>
+                <span class="activity-badge${isMe?' me':''}">${p.activity}</span>
+              </div>`;
+            }).join('');
+
+        const safeKey = key.replace(/'/g,"\\'");
+        const et = time.replace(/'/g,"\\'");
+        const el = (DAYS[i]+' '+formatDate(date)).replace(/'/g,"\\'");
+
+        let btnHTML = '';
+        if (myEntry) {
+          btnHTML = `<button class="drop-btn" onclick="window.dropSlot('${safeKey}')">Drop out</button>`;
+        } else if (slotPast) {
+          btnHTML = `<div class="past-label">Past</div>`;
+        } else if (isFull) {
+          btnHTML = `<div class="full-label">Slot full</div>`;
+        } else if (atLimit) {
+          btnHTML = `<div class="limit-label">Weekly limit reached</div>`;
+        } else {
+          btnHTML = `<button class="sign-up-btn" onclick="window.openSignup('${safeKey}','${et}','${el}')">+ Sign up</button>`;
+        }
+
+        slot.innerHTML = `
+          <div class="slot-time">${time}</div>
+          <div class="slot-capacity">
+            <div class="cap-bar"><div class="cap-fill${isFull?' full-cap':''}" style="width:${capPct}%"></div></div>
+            <div class="cap-text">${people.length}/${CAPACITY}</div>
+          </div>
+          <div class="slot-people">${peopleHTML}</div>
+          ${btnHTML}`;
+        slotsDiv.appendChild(slot);
+      });
+
+      col.appendChild(slotsDiv);
+      grid.appendChild(col);
+    }
+
+    if (isAdmin) renderAdminPanel(bookings, disabledDays);
+  }
+
+  // ── Admin panel ──────────────────────────────────────────────────
+  function renderAdminPanel(bookings, disabledDays) {
+    const monday = getMonday(weekOffset);
+    const daysDiv = document.getElementById('admin-days');
+    daysDiv.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(monday); date.setDate(monday.getDate()+i);
+      const dateStr = localDateStr(date);
+      const isDisabled = disabledDays[dateStr] === true;
+      const toggle = document.createElement('div');
+      toggle.className = 'day-toggle '+(isDisabled?'disabled':'enabled');
+      toggle.innerHTML = `<div class="dt-name">${DAYS[i]}</div><div class="dt-status">${isDisabled?'Closed':'Open'}</div>`;
+      toggle.onclick = async () => {
+        const wid = weekId(weekOffset);
+        const ref = doc(db, 'weeks', wid);
+        const snap = await getDoc(ref);
+        const current = snap.exists() ? (snap.data().disabledDays || {}) : {};
+        current[dateStr] = !isDisabled;
+        await setDoc(ref, { disabledDays: current }, { merge: true });
+      };
+      daysDiv.appendChild(toggle);
+    }
+
+    const listDiv = document.getElementById('admin-booking-list');
+    listDiv.innerHTML = '';
+    let hasAny = false;
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(monday); date.setDate(monday.getDate()+i);
+      const dateStr = localDateStr(date);
+      SLOTS.forEach(time => {
+        const key = slotKey(dateStr, time);
+        (bookings[key]||[]).forEach(p => {
+          hasAny = true;
+          const item = document.createElement('div');
+          item.className = 'booking-item';
+          const safeKey = key.replace(/'/g,"\\'");
+          const safeName = p.name.replace(/'/g,"\\'");
+          item.innerHTML = `<div class="booking-item-left">
+            <div class="booking-item-name">${p.name}</div>
+            <div class="booking-item-detail">${DAYS[i]} ${formatDate(date)} · ${time} · ${p.activity}</div>
+          </div>
+          <button class="remove-booking-btn" onclick="window.adminRemove('${safeKey}','${safeName}')">Remove</button>`;
+          listDiv.appendChild(item);
+        });
+      });
+    }
+    if (!hasAny) listDiv.innerHTML = '<div class="no-bookings-msg">No bookings this week</div>';
+  }
+
+  // ── Global functions (called from HTML onclick) ──────────────────
+  window.changeWeek = (dir) => { weekOffset += dir; subscribeToWeek(weekOffset); };
+  window.closeModal = (id) => { document.getElementById(id).classList.remove('open'); };
+
+  window.handleUserPill = () => {
+    if (currentUser) {
+      if (confirm('Change name? You will need to re-enter it.')) {
+        currentUser = null;
+        sessionStorage.removeItem('gymUser');
+        document.getElementById('user-label').textContent = 'Enter your name';
+        document.getElementById('name-input').value = '';
+        document.getElementById('name-modal').classList.add('open');
+        subscribeToWeek(weekOffset);
+      }
+    } else {
+      document.getElementById('name-input').value = '';
+      document.getElementById('name-modal').classList.add('open');
+    }
+  };
+
+  window.submitName = () => {
+    const name = document.getElementById('name-input').value.trim();
+    if (!name) { showToast('Please enter your name'); return; }
+    currentUser = name;
+    sessionStorage.setItem('gymUser', name);
+    document.getElementById('user-label').textContent = name;
+    window.closeModal('name-modal');
+    showToast('Welcome, '+name+'!');
+    subscribeToWeek(weekOffset);
+  };
+
+  window.openSignup = (key, time, label) => {
+    if (!currentUser) { document.getElementById('name-modal').classList.add('open'); return; }
+    pendingSlot = key;
+    document.getElementById('signup-sub').textContent = label+' · '+time;
+    document.getElementById('activity-select').value = '';
+    document.getElementById('signup-modal').classList.add('open');
+  };
+
+  window.confirmSignup = async () => {
+    const act = document.getElementById('activity-select').value;
+    if (!act) { showToast('Please select an activity'); return; }
+    const btn = document.getElementById('confirm-btn');
+    btn.innerHTML = '<span class="spinner"></span>Booking...';
+    btn.disabled = true;
+    try {
+      const wid = weekId(weekOffset);
+      const ref = doc(db, 'weeks', wid);
+      const snap = await getDoc(ref);
+      const data = snap.exists() ? snap.data() : { bookings: {}, disabledDays: {} };
+      const bookings = data.bookings || {};
+      if (!bookings[pendingSlot]) bookings[pendingSlot] = [];
+      bookings[pendingSlot].push({ name: currentUser, activity: act });
+      await setDoc(ref, { bookings }, { merge: true });
+      window.closeModal('signup-modal');
+      showToast('Booked! See you at the gym, '+currentUser+'.');
+    } catch(e) {
+      showToast('Error saving booking. Please try again.');
+    }
+    btn.innerHTML = 'Confirm Booking';
+    btn.disabled = false;
+  };
+
+  window.dropSlot = async (key) => {
+    if (!confirm('Remove your booking from this slot?')) return;
+    try {
+      const wid = weekId(weekOffset);
+      const ref = doc(db, 'weeks', wid);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const bookings = data.bookings || {};
+      if (bookings[key]) {
+        bookings[key] = bookings[key].filter(p => p.name.toLowerCase() !== currentUser.toLowerCase());
+        await setDoc(ref, { bookings }, { merge: true });
+      }
+      showToast('You\'ve been removed from this slot.');
+    } catch(e) {
+      showToast('Error removing booking. Please try again.');
+    }
+  };
+
+  window.openAdminLogin = () => {
+    if (isAdmin) { document.getElementById('admin-panel').classList.toggle('show'); return; }
+    document.getElementById('admin-password-input').value = '';
+    document.getElementById('admin-modal').classList.add('open');
+  };
+
+  window.submitAdminPassword = () => {
+    const pw = document.getElementById('admin-password-input').value;
+    if (pw !== ADMIN_PASSWORD) { showToast('Incorrect password'); return; }
+    isAdmin = true;
+    window.closeModal('admin-modal');
+    document.getElementById('admin-panel').classList.add('show');
+    showToast('Admin mode unlocked');
+    subscribeToWeek(weekOffset);
+  };
+
+  window.closeAdmin = () => {
+    document.getElementById('admin-panel').classList.remove('show');
+    isAdmin = false;
+  };
+
+  window.adminRemove = async (key, name) => {
+    if (!confirm('Remove '+name+' from this slot?')) return;
+    try {
+      const wid = weekId(weekOffset);
+      const ref = doc(db, 'weeks', wid);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const bookings = data.bookings || {};
+      if (bookings[key]) {
+        bookings[key] = bookings[key].filter(p => p.name !== name);
+        await setDoc(ref, { bookings }, { merge: true });
+      }
+      showToast(name+' removed.');
+    } catch(e) {
+      showToast('Error removing booking.');
+    }
+  };
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────
+  if (currentUser) {
+    document.getElementById('user-label').textContent = currentUser;
+  } else {
+    document.getElementById('name-modal').classList.add('open');
+  }
+  subscribeToWeek(weekOffset);
+</script>
+</body>
+</html>
