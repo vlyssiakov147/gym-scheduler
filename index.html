@@ -58,7 +58,10 @@
     .empty-msg { font-size: 11px; color: #bbb; text-align: center; padding: 8px 0; }
     .sign-up-btn { width: 100%; margin-top: 6px; background: var(--blue); color: var(--white); border: none; border-radius: 6px; padding: 6px 0; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; }
     .sign-up-btn:hover { background: var(--blue-light); }
-    .drop-btn { width: 100%; margin-top: 6px; background: transparent; color: #d1543a; border: 1px solid #d1543a; border-radius: 6px; padding: 6px 0; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; }
+    .slot-actions { display: flex; gap: 6px; margin-top: 6px; }
+    .edit-btn { flex: 1; background: var(--blue-pale); color: var(--blue); border: 1px solid var(--blue); border-radius: 6px; padding: 6px 0; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; }
+    .edit-btn:hover { background: var(--blue); color: var(--white); }
+    .drop-btn { flex: 1; background: transparent; color: #d1543a; border: 1px solid #d1543a; border-radius: 6px; padding: 6px 0; font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; }
     .drop-btn:hover { background: #fff0ed; }
     .full-label { width: 100%; margin-top: 6px; text-align: center; font-size: 11px; color: #d1543a; font-weight: 600; padding: 4px 0; }
     .past-label { width: 100%; margin-top: 6px; text-align: center; font-size: 11px; color: var(--gray-text); padding: 4px 0; }
@@ -189,6 +192,28 @@
   </div>
 </div>
 
+<!-- Edit Activity Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h2>Edit Activity</h2>
+    <p class="modal-sub" id="edit-sub"></p>
+    <label>Change Activity</label>
+    <select id="edit-activity-select">
+      <option value="">-- Select activity --</option>
+      <option>Weight Lifting</option>
+      <option>Boxing</option>
+      <option>Cardio</option>
+      <option>Core Training</option>
+      <option>Leg Training</option>
+      <option>Yoga / Stretching</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('edit-modal')">Cancel</button>
+      <button class="btn-primary" id="save-edit-btn" onclick="confirmEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Admin Login Modal -->
 <div class="modal-overlay" id="admin-modal">
   <div class="modal">
@@ -232,6 +257,7 @@
   let isAdmin = false;
   let weekOffset = 0;
   let pendingSlot = null;
+  let editSlot = null;
   let unsubscribe = null;
 
   function getMonday(offset) {
@@ -261,7 +287,6 @@
   }
   function isPastSlot(d, time) {
     const now = new Date();
-    // Use the start hour of the slot
     const startTime = time.split(' - ')[0];
     const h12 = parseInt(startTime.split(':')[0]);
     const mins = parseInt(startTime.split(':')[1]);
@@ -356,10 +381,15 @@
         const safeKey = key.replace(/'/g,"\\'");
         const et = time.replace(/'/g,"\\'");
         const el = (DAYS[i]+' '+formatDate(date)).replace(/'/g,"\\'");
+        const currentActivity = myEntry ? myEntry.activity.replace(/'/g,"\\'") : '';
 
         let btnHTML = '';
         if (myEntry) {
-          btnHTML = `<button class="drop-btn" onclick="window.dropSlot('${safeKey}')">Drop out</button>`;
+          // Show Edit + Drop out side by side — always allow drop out even on past slots
+          btnHTML = `<div class="slot-actions">
+            ${!slotPast ? `<button class="edit-btn" onclick="window.openEdit('${safeKey}','${et}','${el}','${currentActivity}')">Edit activity</button>` : ''}
+            <button class="drop-btn" onclick="window.dropSlot('${safeKey}')">Drop out</button>
+          </div>`;
         } else if (slotPast) {
           btnHTML = `<div class="past-label">Past</div>`;
         } else if (isFull) {
@@ -493,6 +523,40 @@
       showToast('Error saving booking. Please try again.');
     }
     btn.innerHTML = 'Confirm Booking';
+    btn.disabled = false;
+  };
+
+  window.openEdit = (key, time, label, currentActivity) => {
+    editSlot = key;
+    document.getElementById('edit-sub').textContent = label+' · '+time;
+    document.getElementById('edit-activity-select').value = currentActivity;
+    document.getElementById('edit-modal').classList.add('open');
+  };
+
+  window.confirmEdit = async () => {
+    const act = document.getElementById('edit-activity-select').value;
+    if (!act) { showToast('Please select an activity'); return; }
+    const btn = document.getElementById('save-edit-btn');
+    btn.innerHTML = '<span class="spinner"></span>Saving...';
+    btn.disabled = true;
+    try {
+      const ref = doc(db, 'weeks', weekId(weekOffset));
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const bookings = data.bookings || {};
+      if (bookings[editSlot]) {
+        bookings[editSlot] = bookings[editSlot].map(p =>
+          p.name.toLowerCase() === currentUser.toLowerCase() ? { ...p, activity: act } : p
+        );
+        await setDoc(ref, { bookings }, { merge: true });
+      }
+      window.closeModal('edit-modal');
+      showToast('Activity updated to '+act+'!');
+    } catch(e) {
+      showToast('Error updating activity. Please try again.');
+    }
+    btn.innerHTML = 'Save Changes';
     btn.disabled = false;
   };
 
